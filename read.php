@@ -1,28 +1,22 @@
 <?php
 
-use Dom\Text;
-$tmp_name = $_FILES['image']['tmp_name'];
-
-move_uploaded_file($tmp_name, "uploads/" . 'qr.jpg');
-
-
 require "vendor/autoload.php";
 
-use chillerlan\QRCode\QRCode;
+use QRCodeApp\QRCodeReader;
 
+$tmp_name = $_FILES['image']['tmp_name'];
+$uploadPath = "uploads/qr.jpg";
 
-try{
-  $result = (new QRCode)->readFromFile(__DIR__ .  '/uploads/qr.jpg'); // -> DecoderResult
-
-  $content = $result->data;
-
-  $content = (string)$result;
-
-    print_r($content);
+if (move_uploaded_file($tmp_name, $uploadPath)) {
+    $qrCodeReader = new QRCodeReader();
+    try {
+        $content = $qrCodeReader->readQRCode(__DIR__ . '/' . $uploadPath);
+        print_r($content);
+    } catch (\RuntimeException $e) {
+        echo $e->getMessage();
+    } finally {
+        #unlink($uploadPath);
+    }
+} else {
+    echo "Fayl yuklashda xatolik yuz berdi!";
 }
-catch(Throwable $e){
-    error_log('QR code reading error: ' . $e->getMessage());
-    echo "QR kod o‘qishda xatolik yuz berdi!";
-}
-
-unlink("upload/" . 'qr.jpg');
